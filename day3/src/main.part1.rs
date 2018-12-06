@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::vec::Vec;
 use binary_heap_plus::*;
-use std::collections::HashSet;
 
 const INPUT_FILENAME: &str = "input.txt";
 /*
@@ -107,16 +106,12 @@ fn main() -> Result<()> {
     let lowest_x_coord = rects[0].topleft.x;
     let mut rect_idx = 0; // index into the rects vector to get the next vector to 
     let mut overlap_area = 0;
-
-    // All the claims that are involved with overlaps
-    let mut overlap_claims: HashSet<i32> = HashSet::new();
-
     // Iterate through all x coordinates across fabric
     for sweep_x in lowest_x_coord..(highest_x_coord+1) {
         println!{"Sweep Line X Coord: {}", sweep_x}
         pop_processed_rects(&mut priority_rects, sweep_x);
         push_rects_on_sweep_line(&mut priority_rects, sweep_x, &rects, &mut rect_idx);
-        let overlap_distance = calculate_overlap_distance(priority_rects.clone(), &mut overlap_claims);
+        let overlap_distance = calculate_overlap_distance(priority_rects.clone());
         overlap_area += overlap_distance;
         // We now have a binary heap that contains all of the rectangles in this sweep line
         // for this iteration
@@ -126,18 +121,6 @@ fn main() -> Result<()> {
         println!("Priority Q status: {:?}\n", priority_rects);
     }
     println!("Total Overlap Area: {}", overlap_area);
-
-    // Part2: The claim that doesn't overlap with anyone else
-    // The lazy solution is an n^2 all-pairs intersection check
-    for rect in &rects {
-        // Check for intersection with everyone else, if it only intersects with itself, this is our guy
-        if rects.iter().map(|r| rectangular_intersection(rect, r)).filter(|x| x.is_some()).count() == 1 {
-            println!("Rect Claim {} has no intersections with any other rect", rect.claim);
-        }
-
-
-    }
-
     Ok(())
 }
 
@@ -166,6 +149,8 @@ fn pop_processed_rects(priority_rects: &mut BinaryHeap<&Rect, MinComparator>, sw
         break
         // If None, break
     }
+
+    println!("Done popping");
 }
 
 // Add all of the rectangles in this x-coord to the priority queue
@@ -179,10 +164,12 @@ fn push_rects_on_sweep_line<'a>(priority_rects: &mut BinaryHeap<&'a Rect, MinCom
                 break;
             }
         }
+
+        println!("Done pushing");
 }
 
 // Given the current list of rectangles in the sweep line, calculate the line overlap
-fn calculate_overlap_distance(priority_rects: BinaryHeap<&Rect, MinComparator>, overlap_claims: &mut HashSet<i32>) -> u32 {
+fn calculate_overlap_distance(priority_rects: BinaryHeap<&Rect, MinComparator>) -> u32 {
     // No rects == no overlap
     if priority_rects.len() == 0 { return 0; }
 
@@ -252,22 +239,4 @@ fn line_to_rect(line: &str) -> Rect {
     let bot_x: i32 = top_x + line[(colon_index + 2)..x_index].parse::<i32>().unwrap();
     let bot_y: i32 = top_y + line[(x_index + 1)..].parse::<i32>().unwrap();
     Rect { claim: claim, topleft: Point{x: top_x, y: top_y}, botright: Point{x: bot_x, y: bot_y}}
-}
-
-
-// Amazing viz at https://silentmatt.com/rectangle-intersection/
-// Returns the rectangle that represents the intersections between these 2 rectangles
-fn rectangular_intersection(r1: &Rect, r2: &Rect) -> Option<Rect> {
-    if r1.topleft.x < r2.botright.x && r1.botright.x > r2.topleft.x &&
-        r1.topleft.y < r2.botright.y && r1.botright.y > r2.topleft.y {
-            // Intersection
-            let intersect_top_left_x = std::cmp::max(r1.topleft.x, r2.topleft.x);
-            let intersect_top_left_y = std::cmp::max(r1.topleft.y, r2.topleft.y);
-            let intersect_bot_right_x = std::cmp::min(r1.botright.x, r2.botright.x);
-            let intersect_bot_right_y = std::cmp::min(r1.botright.y, r2.botright.y);
-            Some(Rect { claim: -1, topleft: Point{x: intersect_top_left_x, y: intersect_top_left_y}, botright: Point{x: intersect_bot_right_x, y: intersect_bot_right_y}})
-        }
-        else {
-            None
-        }
 }

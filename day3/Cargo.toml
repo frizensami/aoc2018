@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Sriram Sami <frizensami@gmail.com>"]
 
 [dependencies]
+binary-heap-plus = "0.1.4"
