@@ -1,0 +1,7 @@
+[package]
+name = "day5"
+version = "0.1.0"
+authors = ["Sriram Sami <frizensami@gmail.com>"]
+
+[dependencies]
+linked-list = "0.0.3"
