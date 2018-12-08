@@ -1,0 +1,8 @@
+[package]
+name = "day7"
+version = "0.1.0"
+authors = ["Sriram Sami <frizensami@gmail.com>"]
+
+[dependencies]
+petgraph = "0.4.13"
+binary-heap-plus = "0.1.4"
